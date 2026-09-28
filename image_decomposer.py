@@ -196,7 +196,8 @@ class ImageDecomposer:
         cls,
         image_path: str,
         text_layers: Optional[List[Dict[str, Any]]] = None,
-        custom_headline: Optional[str] = None
+        custom_headline: Optional[str] = None,
+        base_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Main pipeline: Takes an image, isolates text and background,
@@ -230,8 +231,11 @@ class ImageDecomposer:
         # Inpaint background to erase flat text
         cls.inpaint_clean_background(img_bgr, detected, clean_bg_path)
 
-        # Relative path for Photopea to load via HTTP server
-        clean_bg_rel_url = f"/outputs/decomposed/{clean_bg_filename}"
+        # Relative or absolute URL for Photopea to load background image
+        if base_url:
+            clean_bg_rel_url = f"{base_url.rstrip('/')}/outputs/decomposed/{clean_bg_filename}"
+        else:
+            clean_bg_rel_url = f"/outputs/decomposed/{clean_bg_filename}"
 
         # Generate Photopea ExtendScript
         extendscript_lines = [

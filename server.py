@@ -172,8 +172,9 @@ async def api_convert_image_to_psd(request: Request):
         with open(saved_path, "wb") as f:
             f.write(contents)
 
-        # Run decomposition
-        decomp = ImageDecomposer.convert_image_to_psd_script(saved_path)
+        # Run decomposition with full base_url
+        base_url = str(request.base_url).rstrip("/")
+        decomp = ImageDecomposer.convert_image_to_psd_script(saved_path, base_url=base_url)
 
         # Queue script to Photopea
         bridge.queue_command(
@@ -197,7 +198,8 @@ async def api_convert_sample(request: Request):
         if not os.path.exists(sample_path):
             return JSONResponse({"status": "error", "message": "Immagine di esempio non trovata"}, status_code=404)
 
-        decomp = ImageDecomposer.convert_image_to_psd_script(sample_path)
+        base_url = str(request.base_url).rstrip("/")
+        decomp = ImageDecomposer.convert_image_to_psd_script(sample_path, base_url=base_url)
         bridge.queue_command(
             decomp["extendscript"],
             "Conversione Immagine Demo ('flat_sample_post.png') in PSD a livelli modificabili",
@@ -252,5 +254,7 @@ app = Starlette(debug=True, routes=routes, middleware=middleware)
 
 if __name__ == "__main__":
     import uvicorn
-    print("[Photopea Copilot] Avvio Web & Bridge Server su http://localhost:8000 ...", file=sys.stderr)
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+    port = int(os.environ.get("PORT", 8000))
+    host = "0.0.0.0"
+    print(f"[Photopea Copilot] Avvio Web & Bridge Server su http://{host}:{port} ...", file=sys.stderr)
+    uvicorn.run("server:app", host=host, port=port, log_level="info")
