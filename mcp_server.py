@@ -20,6 +20,7 @@ app = MCPServer("Photopea-Copilot-MCP")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+OUTPUTS_DIR = os.path.join(BASE_DIR, "outputs")
 BRIDGE_URL = os.environ.get("BRIDGE_URL", "http://127.0.0.1:8000").rstrip("/")
 
 os.makedirs(TEMPLATES_DIR, exist_ok=True)
