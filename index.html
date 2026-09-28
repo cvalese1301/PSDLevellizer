@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photopea AI Studio - Convertitore Immagine in PSD & Copilot MCP</title>
+  <meta name="description" content="Converti qualsiasi immagine piatta in livelli PSD modificabili con Photopea. Inpainting dello sfondo, estrazione OCR dei testi e controllo agentico con ChatGPT tramite MCP.">
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme copilot-layout">
+  <!-- Top Navigation Header -->
+  <header class="app-header" id="app-header">
+    <div class="header-brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1 class="brand-title">Photopea <span class="gradient-text">PSD Layer Studio</span></h1>
+        <span class="brand-badge">Image-to-PSD & Copilot MCP</span>
+      </div>
+    </div>
+
+    <!-- Live Status Indicators -->
+    <div class="header-controls">
+      <div class="engine-status connected" id="status-photopea">
+        <span class="status-dot"></span>
+        <span class="status-label">Photopea Live</span>
+      </div>
+
+      <div class="engine-status connected" id="status-mcp">
+        <span class="status-dot pulse-cyan"></span>
+        <span class="status-label">MCP Server: Attivo (Porta 8000)</span>
+      </div>
+
+      <div class="header-action-group">
+        <input type="file" id="input-psd-upload" accept=".psd,.psb" style="display:none;">
+        <input type="file" id="input-image-upload" accept="image/*" style="display:none;">
+        
+        <button type="button" class="btn-top glow-btn" id="btn-convert-image-trigger" title="Carica una qualsiasi immagine piatta (PNG/JPG/WebP) e convertila in livelli PSD modificabili">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2"></path>
+          </svg>
+          <span>Scomponi Immagine in PSD</span>
+        </button>
+
+        <button type="button" class="btn-top accent-btn" id="btn-convert-sample-action" title="Prova la scomposizione istantanea con l'immagine di esempio">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Prova con Immagine Demo</span>
+        </button>
+
+        <button type="button" class="btn-top" id="btn-upload-trigger" title="Carica un file PSD esistente">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Apri PSD</span>
+        </button>
+
+        <button type="button" class="btn-top primary" id="btn-export-psd-action" title="Esporta il file PSD modificato">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Salva PSD</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Workspace: Photopea Viewport on Left, AI Layer Inspector on Right -->
+  <main class="copilot-workspace">
+    
+    <!-- Left Area: Embedded Photopea Editor -->
+    <section class="photopea-canvas-viewport" id="photopea-viewport">
+      <iframe id="photopea-iframe" class="photopea-main-frame" src="about:blank" allow="clipboard-read; clipboard-write"></iframe>
+      
+      <!-- Drag & Drop Overlay on Canvas -->
+      <div class="drag-drop-overlay" id="drag-drop-overlay">
+        <div class="drag-drop-box">
+          <div class="drag-icon-glow">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <h2 class="drag-title">Rilascia qui l'immagine per convertirla in PSD a livelli</h2>
+          <p class="drag-subtitle">L'AI isola lo sfondo con inpainting e genera veri livelli di testo modificabili in Photopea.</p>
+          <div class="drag-features">
+            <span>✓ OCR & Riconoscimento Caratteri</span>
+            <span>✓ Inpainting Sfondo Pulito</span>
+            <span>✓ Livelli Photoshop (LayerKind.TEXT)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conversion Progress Overlay -->
+      <div class="conversion-modal" id="conversion-modal">
+        <div class="conversion-card">
+          <div class="conversion-spinner"></div>
+          <h3 class="conversion-title" id="conversion-modal-title">Scomposizione Immagine in Livelli PSD...</h3>
+          <p class="conversion-desc" id="conversion-modal-desc">Analisi visiva e riconoscimento testi in corso...</p>
+          <div class="conversion-steps" id="conversion-steps">
+            <div class="step-item active" id="step-upload">1. Ricezione Immagine</div>
+            <div class="step-item" id="step-ocr">2. OCR & Riconoscimento Testi</div>
+            <div class="step-item" id="step-inpaint">3. Inpainting Sfondo Pulito</div>
+            <div class="step-item" id="step-psd">4. Generazione PSD in Photopea</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overlay Toast Banner when ChatGPT executes a command -->
+      <div class="copilot-activity-toast" id="copilot-toast">
+        <div class="toast-ai-badge">ChatGPT MCP</div>
+        <div class="toast-body">
+          <strong id="toast-title">Esecuzione istruzione...</strong>
+          <span id="toast-desc">Modifica applicata in tempo reale a Photopea.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Area: AI Copilot Inspector & Real-time Action Log -->
+    <aside class="copilot-sidebar" id="copilot-sidebar">
+      
+      <!-- Document Summary Bar -->
+      <div class="doc-summary-card">
+        <div class="doc-header-row">
+          <span class="doc-badge-pill">Documento Attivo</span>
+          <span class="doc-res-tag" id="doc-dimensions-tag">1080 x 1080 px</span>
+        </div>
+        <h2 class="doc-title" id="doc-active-name">In attesa di documento...</h2>
+        <span class="doc-layers-count" id="doc-layers-count">0 livelli rilevati</span>
+      </div>
+
+      <!-- Quick Converter Card in Sidebar -->
+      <div class="sidebar-converter-card">
+        <div class="converter-card-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2"></path>
+          </svg>
+          <span>Convertitore Immagine → PSD</span>
+        </div>
+        <p class="converter-card-desc">Carica un'immagine piatta (PNG/JPG) per estrarre lo sfondo ed i testi in livelli separati.</p>
+        <div class="converter-btn-row">
+          <button type="button" class="btn-sidebar-convert" id="btn-sidebar-upload">
+            <span>Scegli File</span>
+          </button>
+          <button type="button" class="btn-sidebar-demo" id="btn-sidebar-demo">
+            <span>Usa Immagine Demo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Buttons: Livelli vs Cronologia ChatGPT -->
+      <div class="sidebar-tab-nav">
+        <button type="button" class="tab-pill active" id="tab-btn-layers">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+          <span>Livelli Documento</span>
+        </button>
+        <button type="button" class="tab-pill" id="tab-btn-actions">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span>Feed Azioni MCP</span>
+          <span class="counter-badge" id="action-count-badge">0</span>
+        </button>
+      </div>
+
+      <!-- Tab Panel 1: Live Layers Tree -->
+      <div class="tab-panel active" id="panel-layers">
+        <div class="panel-toolbar">
+          <span class="panel-caption">Livelli Modificabili in Photopea:</span>
+          <button type="button" class="btn-micro" id="btn-force-rescan" title="Forza scansione dei livelli da Photopea">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+            </svg>
+            <span>Riscansiona</span>
+          </button>
+        </div>
+
+        <div class="copilot-layers-list" id="copilot-layers-list">
+          <div class="empty-layers-msg">
+            <p>Nessun livello aperto. Clicca su "Scomponi Immagine in PSD" o "Prova con Immagine Demo".</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Panel 2: Live MCP Action Log -->
+      <div class="tab-panel" id="panel-actions">
+        <div class="panel-toolbar">
+          <span class="panel-caption">Istruzioni inviate da ChatGPT:</span>
+          <button type="button" class="btn-micro" id="btn-clear-log" title="Pulisci log">Pulisci</button>
+        </div>
+
+        <div class="copilot-feed-stream" id="copilot-feed-stream">
+          <div class="empty-feed-msg">
+            <p>In attesa di istruzioni da ChatGPT tramite il server MCP...</p>
+            <span class="hint-code">Collega ChatGPT Desktop a mcp_server.py per impartire comandi agentici.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Prompt Tester (Permette di inviare istruzioni anche manualmente) -->
+      <div class="copilot-direct-tester">
+        <div class="tester-header">
+          <span class="tester-label">Prompt Copilot AI:</span>
+          <span class="tester-sub">Modifica PSD in linguaggio naturale</span>
+        </div>
+        <div class="tester-input-wrap">
+          <input type="text" id="input-copilot-prompt" class="tester-input" placeholder="Es: 'Cambia il titolo in Offerte Speciali 2026', 'Traduci in inglese'...">
+          <button type="button" class="btn-tester-submit" id="btn-send-tester-prompt">Invia</button>
+        </div>
+        <div class="tester-chips">
+          <button type="button" class="chip-item" data-prompt="Traduci tutti i testi del post in inglese">Traduci in EN</button>
+          <button type="button" class="chip-item" data-prompt="Cambia il colore del testo principale in azzurro ciano #06B6D4">Colore Ciano</button>
+          <button type="button" class="chip-item" data-prompt="Aumenta la dimensione del font del titolo di 8px">Font +8px</button>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

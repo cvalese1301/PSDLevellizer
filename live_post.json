@@ -1,0 +1,55 @@
+{
+  "action": "render_post",
+  "template_id": "tech-announcement",
+  "is_custom": false,
+  "file_path": null,
+  "layer_mapping": {},
+  "topic": "Automazione Grafica con Photopea e MCP",
+  "tone": "tech_bold",
+  "copy": {
+    "headline": "AUTOMAZIONE GRAFICA CON PHOTOPEA E MCP",
+    "subheadline": "Scopri come trasformare le tue idee in grafiche ad alto impatto grazie a Automazione Grafica con Photopea e MCP.",
+    "cta": "SCOPRI DI PIÙ →",
+    "badge": "TECH TRENDS 2026",
+    "author": "@antigravity.ai"
+  },
+  "image_url": "https://image.pollinations.ai/prompt/Automazione%20Grafica%20con%20Photopea%20e%20MCP%20futuristic%20clean%20lighting%208k%20studio%20render?width=1080&height=720&model=flux&nologo=true",
+  "image_prompt": "Automazione Grafica con Photopea e MCP",
+  "status": "pending_render",
+  "updated_at": 1790579642.5874083,
+  "qa_report": {
+    "score": 96,
+    "verdict": "APPROVATO",
+    "total_checks": 4,
+    "issues_detected": [],
+    "checklist": [
+      {
+        "name": "Margini Safe-Zone (48px)",
+        "status": "pass",
+        "detail": "Testi distanziati dai bordi; compatibilità garantita con crop 1:1 e 4:5 nei feed social."
+      },
+      {
+        "name": "Contrasto Cromatico (WCAG AAA)",
+        "status": "pass",
+        "detail": "Rapporto di contrasto testo/sfondo stimato > 7.5:1. Ottima leggibilità anche su display mobili a bassa luminosità."
+      },
+      {
+        "name": "Gerarchia Tipografica & Troncamenti",
+        "status": "pass",
+        "detail": "Scala dimensionale corretta: Titolo 46px > Sottotitolo 24px > CTA 20px."
+      },
+      {
+        "name": "Call-to-Action Efficace",
+        "status": "pass",
+        "detail": "Pulsante di azione presente e chiaro: 'SCOPRI DI PIÙ →'."
+      }
+    ],
+    "recommendation": "Post ottimale per la pubblicazione!"
+  },
+  "export_requested": {
+    "format": "png",
+    "filename": "chatgpt_mcp_output.png",
+    "output_path": "C:\\Users\\chris\\Desktop\\Photopea\\outputs\\chatgpt_mcp_output.png",
+    "timestamp": 1790579642.5874062
+  }
+}

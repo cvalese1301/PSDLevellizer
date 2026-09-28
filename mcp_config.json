@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "photopea-postgen": {
+      "command": "python",
+      "args": [
+        "c:\\Users\\chris\\Desktop\\Photopea\\mcp_server.py"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

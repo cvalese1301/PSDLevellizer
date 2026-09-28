@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Output artifacts & temp caches
+outputs/decomposed/*.png
+outputs/*.png
+outputs/*.psd
+!outputs/.gitkeep
+!outputs/decomposed/.gitkeep
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

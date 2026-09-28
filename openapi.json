@@ -1,0 +1,86 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Photopea PostGen Studio AI",
+    "description": "API per la creazione e validazione automatica di post social grafici tramite Photopea API, intelligenza artificiale e Visual QA.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Server Locale PostGen Studio"
+    }
+  ],
+  "paths": {
+    "/templates": {
+      "get": {
+        "operationId": "listTemplates",
+        "summary": "Elenca tutti i template social disponibili",
+        "responses": {
+          "200": {
+            "description": "Lista dei template con dimensioni e slot layer"
+          }
+        }
+      }
+    },
+    "/post/generate": {
+      "post": {
+        "operationId": "generateSocialPost",
+        "summary": "Genera e renderizza un post grafico su Photopea",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "template_id": { "type": "string", "example": "tech-announcement" },
+                  "topic": { "type": "string", "example": "Lancio del nuovo corso AI" },
+                  "tone": { "type": "string", "example": "tech_bold" },
+                  "headline": { "type": "string" },
+                  "subheadline": { "type": "string" },
+                  "cta": { "type": "string" },
+                  "image_prompt": { "type": "string" }
+                },
+                "required": ["template_id", "topic"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post generato e inviato a Photopea con successo"
+          }
+        }
+      }
+    },
+    "/post/qa": {
+      "post": {
+        "operationId": "verifyPostQa",
+        "summary": "Esegue la verifica di qualità visiva (QA) del post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "template_id": { "type": "string" },
+                  "headline": { "type": "string" },
+                  "subheadline": { "type": "string" },
+                  "cta": { "type": "string" }
+                },
+                "required": ["template_id", "headline"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Report con punteggio QA, safe zone, contrasto e checklist"
+          }
+        }
+      }
+    }
+  }
+}

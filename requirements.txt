@@ -1,0 +1,8 @@
+mcp>=2.2.0
+opencv-python>=4.10.0
+pillow>=10.0.0
+numpy>=1.26.0
+psd-tools>=1.9.0
+starlette>=0.37.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9
