@@ -233,8 +233,140 @@ async def api_upload_psd(request: Request):
         "size_bytes": len(contents)
     })
 
+# ============================================================================
+# Endpoints for ChatGPT Web Actions & Remote Tool Calls
+# ============================================================================
+import mcp_server
+
+async def api_get_openapi(request: Request):
+    """Dynamically serves the OpenAPI 3.1.0 schema with the current server URL."""
+    openapi_file = os.path.join(BASE_DIR, "openapi.json")
+    if os.path.exists(openapi_file):
+        with open(openapi_file, "r", encoding="utf-8") as f:
+            spec = json.load(f)
+        base_url = str(request.base_url).rstrip("/")
+        spec["servers"] = [
+            {"url": base_url, "description": "Server Attivo PSDLevellizer"}
+        ]
+        return JSONResponse(spec)
+    return JSONResponse({"error": "openapi.json non trovato"}, status_code=404)
+
+async def api_tool_convert_image(request: Request):
+    """Tool: Convert an image to editable PSD."""
+    try:
+        data = await request.json()
+        image_url = data.get("image_url") or data.get("image_path")
+        if not image_url:
+            return JSONResponse({"status": "error", "message": "Il parametro 'image_url' è obbligatorio"}, status_code=400)
+        
+        res = await mcp_server.convert_image_to_editable_psd(
+            image_path_or_url=image_url,
+            text_annotations=data.get("text_annotations"),
+            custom_headline=data.get("custom_headline")
+        )
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+async def api_tool_document_state(request: Request):
+    """Tool: Get the active document state and layers."""
+    try:
+        res = await mcp_server.get_document_state()
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+async def api_tool_edit_text_layer(request: Request):
+    """Tool: Edit a text layer."""
+    try:
+        data = await request.json()
+        layer_name = data.get("layer_name")
+        if not layer_name:
+            return JSONResponse({"status": "error", "message": "'layer_name' è obbligatorio"}, status_code=400)
+        
+        res = await mcp_server.edit_text_layer(
+            layer_name=layer_name,
+            new_text=data.get("new_text"),
+            font_size=data.get("font_size"),
+            color_hex=data.get("color_hex"),
+            position_x=data.get("position_x"),
+            position_y=data.get("position_y")
+        )
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+async def api_tool_transform_layer(request: Request):
+    """Tool: Move or scale a layer."""
+    try:
+        data = await request.json()
+        layer_name = data.get("layer_name")
+        if not layer_name:
+            return JSONResponse({"status": "error", "message": "'layer_name' è obbligatorio"}, status_code=400)
+        
+        res = await mcp_server.transform_layer(
+            layer_name=layer_name,
+            move_x=float(data.get("move_x", 0)),
+            move_y=float(data.get("move_y", 0)),
+            scale_percent=data.get("scale_percent")
+        )
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+async def api_tool_replace_image_layer(request: Request):
+    """Tool: Replace image layer content."""
+    try:
+        data = await request.json()
+        layer_name = data.get("layer_name")
+        image_url = data.get("image_url")
+        if not layer_name or not image_url:
+            return JSONResponse({"status": "error", "message": "'layer_name' e 'image_url' sono obbligatori"}, status_code=400)
+        
+        res = await mcp_server.replace_image_layer(layer_name=layer_name, image_url=image_url)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+async def api_tool_execute_script(request: Request):
+    """Tool: Execute arbitrary ExtendScript."""
+    try:
+        data = await request.json()
+        script = data.get("script")
+        desc = data.get("description", "Istruzione Photoshop ChatGPT Web")
+        if not script:
+            return JSONResponse({"status": "error", "message": "'script' è obbligatorio"}, status_code=400)
+        
+        res = await mcp_server.execute_photoshop_script(script=script, description=desc)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
+async def api_tool_export_document(request: Request):
+    """Tool: Export document to PSD/PNG."""
+    try:
+        data = await request.json() if request.method == "POST" else {}
+        fmt = data.get("format", "psd")
+        res = await mcp_server.export_document(format=fmt)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
+
 # Routes Configuration
 routes = [
+    # OpenAPI for ChatGPT Web Actions
+    Route("/openapi.json", api_get_openapi, methods=["GET"]),
+
+    # ChatGPT Web Tool Endpoints
+    Route("/api/tools/convert-image", api_tool_convert_image, methods=["POST"]),
+    Route("/api/tools/document-state", api_tool_document_state, methods=["GET"]),
+    Route("/api/tools/edit-text-layer", api_tool_edit_text_layer, methods=["POST"]),
+    Route("/api/tools/transform-layer", api_tool_transform_layer, methods=["POST"]),
+    Route("/api/tools/replace-image-layer", api_tool_replace_image_layer, methods=["POST"]),
+    Route("/api/tools/execute-script", api_tool_execute_script, methods=["POST"]),
+    Route("/api/tools/export-document", api_tool_export_document, methods=["POST", "GET"]),
+
+    # Browser <-> Photopea Bridge Endpoints
     Route("/api/bridge/execute", api_send_command_and_wait, methods=["POST"]),
     Route("/api/bridge/pending", api_get_pending_command, methods=["GET"]),
     Route("/api/bridge/result", api_post_command_result, methods=["POST"]),

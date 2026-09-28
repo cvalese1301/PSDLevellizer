@@ -1,32 +1,67 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Photopea PostGen Studio AI",
-    "description": "API per la creazione e validazione automatica di post social grafici tramite Photopea API, intelligenza artificiale e Visual QA.",
-    "version": "1.0.0"
+    "title": "PSDLevellizer - Photopea AI Copilot",
+    "description": "Strumento per convertire immagini piatte in livelli PSD modificabili ed eseguire modifiche grafiche in linguaggio naturale su Photopea.",
+    "version": "2.2.0"
   },
   "servers": [
     {
-      "url": "http://localhost:8000",
-      "description": "Server Locale PostGen Studio"
+      "url": "https://psdlevellizer.onrender.com",
+      "description": "Server Render PSDLevellizer"
     }
   ],
   "paths": {
-    "/templates": {
+    "/api/tools/convert-image": {
+      "post": {
+        "operationId": "convertImageToEditablePsd",
+        "summary": "Converte un'immagine piatta in livelli PSD modificabili",
+        "description": "Prende l'URL di un'immagine piatta (PNG/JPG/WebP), isola lo sfondo con inpainting e crea veri livelli di testo Photoshop in Photopea.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": {
+                    "type": "string",
+                    "description": "URL accessibile pubblicamente dell'immagine da convertire (PNG, JPG, WebP)."
+                  },
+                  "custom_headline": {
+                    "type": "string",
+                    "description": "Opzionale: testo personalizzato da applicare subito al titolo principale."
+                  }
+                },
+                "required": ["image_url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Immagine convertita e caricata con successo in Photopea."
+          }
+        }
+      }
+    },
+    "/api/tools/document-state": {
       "get": {
-        "operationId": "listTemplates",
-        "summary": "Elenca tutti i template social disponibili",
+        "operationId": "getDocumentState",
+        "summary": "Legge lo stato del documento e tutti i livelli attivi",
+        "description": "Restituisce l'elenco completo dei livelli presenti nel canvas di Photopea, inclusi nome, tipo (testo/pixel), coordinate e testi correnti.",
         "responses": {
           "200": {
-            "description": "Lista dei template con dimensioni e slot layer"
+            "description": "Albero dei livelli e stato attuale del documento."
           }
         }
       }
     },
-    "/post/generate": {
+    "/api/tools/edit-text-layer": {
       "post": {
-        "operationId": "generateSocialPost",
-        "summary": "Genera e renderizza un post grafico su Photopea",
+        "operationId": "editTextLayer",
+        "summary": "Modifica un livello di testo in Photopea",
+        "description": "Modifica in modo mirato testo, font size, colore o coordinate di un livello testo specifico.",
         "requestBody": {
           "required": true,
           "content": {
@@ -34,30 +69,48 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "template_id": { "type": "string", "example": "tech-announcement" },
-                  "topic": { "type": "string", "example": "Lancio del nuovo corso AI" },
-                  "tone": { "type": "string", "example": "tech_bold" },
-                  "headline": { "type": "string" },
-                  "subheadline": { "type": "string" },
-                  "cta": { "type": "string" },
-                  "image_prompt": { "type": "string" }
+                  "layer_name": {
+                    "type": "string",
+                    "description": "Il nome esatto del livello di testo da modificare (es: 'Livello_PROMOZIONE_SPECIALE_2026')."
+                  },
+                  "new_text": {
+                    "type": "string",
+                    "description": "Il nuovo testo da impostare."
+                  },
+                  "font_size": {
+                    "type": "number",
+                    "description": "Dimensione del font in pixel (es: 32)."
+                  },
+                  "color_hex": {
+                    "type": "string",
+                    "description": "Colore del testo in formato esadecimale (es: '#FFD700', '#FFFFFF')."
+                  },
+                  "position_x": {
+                    "type": "number",
+                    "description": "Nuova coordinata X nel canvas."
+                  },
+                  "position_y": {
+                    "type": "number",
+                    "description": "Nuova coordinata Y nel canvas."
+                  }
                 },
-                "required": ["template_id", "topic"]
+                "required": ["layer_name"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Post generato e inviato a Photopea con successo"
+            "description": "Livello di testo aggiornato con successo in Photopea."
           }
         }
       }
     },
-    "/post/qa": {
+    "/api/tools/transform-layer": {
       "post": {
-        "operationId": "verifyPostQa",
-        "summary": "Esegue la verifica di qualità visiva (QA) del post",
+        "operationId": "transformLayer",
+        "summary": "Sposta o ridimensiona un livello",
+        "description": "Trasla (sposta X/Y) o ridimensiona in percentuale un livello o un gruppo.",
         "requestBody": {
           "required": true,
           "content": {
@@ -65,19 +118,127 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "template_id": { "type": "string" },
-                  "headline": { "type": "string" },
-                  "subheadline": { "type": "string" },
-                  "cta": { "type": "string" }
+                  "layer_name": {
+                    "type": "string",
+                    "description": "Nome del livello da spostare o ridimensionare."
+                  },
+                  "move_x": {
+                    "type": "number",
+                    "description": "Pixel di spostamento orizzontale (positivo verso destra, negativo verso sinistra)."
+                  },
+                  "move_y": {
+                    "type": "number",
+                    "description": "Pixel di spostamento verticale (positivo verso il basso, negativo verso l'alto)."
+                  },
+                  "scale_percent": {
+                    "type": "number",
+                    "description": "Percentuale di ridimensionamento (es: 120 per ingrandire del 20%, 80 per rimpicciolire)."
+                  }
                 },
-                "required": ["template_id", "headline"]
+                "required": ["layer_name"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Report con punteggio QA, safe zone, contrasto e checklist"
+            "description": "Livello trasformato con successo."
+          }
+        }
+      }
+    },
+    "/api/tools/replace-image-layer": {
+      "post": {
+        "operationId": "replaceImageLayer",
+        "summary": "Sostituisce un'immagine o Smart Object",
+        "description": "Carica una nuova immagine da URL e sostituisce il contenuto del livello specificato.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "layer_name": {
+                    "type": "string",
+                    "description": "Nome del livello immagine da sostituire."
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "description": "URL pubblico della nuova immagine da inserire."
+                  }
+                },
+                "required": ["layer_name", "image_url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Immagine sostituita con successo."
+          }
+        }
+      }
+    },
+    "/api/tools/execute-script": {
+      "post": {
+        "operationId": "executePhotoshopScript",
+        "summary": "Esegue uno script ExtendScript arbitrario su Photopea",
+        "description": "Permette all'AI di eseguire qualsiasi codice JavaScript/ExtendScript per Photoshop per modifiche avanzate (filtri, ombre, effetti, maschere).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "script": {
+                    "type": "string",
+                    "description": "Codice ExtendScript Photoshop valido da eseguire."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Descrizione leggibile dell'azione eseguita."
+                  }
+                },
+                "required": ["script"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script eseguito con successo in Photopea."
+          }
+        }
+      }
+    },
+    "/api/tools/export-document": {
+      "post": {
+        "operationId": "exportDocument",
+        "summary": "Esporta il documento finale in formato PSD o immagine",
+        "description": "Scarica il documento Photoshop completo (.psd) o renderizza in PNG/JPG.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "format": {
+                    "type": "string",
+                    "enum": ["psd", "png", "jpg"],
+                    "default": "psd",
+                    "description": "Formato di esportazione."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File esportato."
           }
         }
       }
